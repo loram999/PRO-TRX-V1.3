@@ -1,0 +1,819 @@
+		&lt;!DOCTYPE html&gt;
+		&lt;html lang=&quot;en&quot;&gt;
+			&lt;head&gt;
+				&lt;meta charset=&quot;UTF-8&quot;&gt;
+				&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+				&lt;style&gt;
+					body {
+						background-color: white; /* Ensure the iframe has a white background */
+					}
+				&lt;/style&gt;
+				&lt;script&gt;
+					const CDN_WHITELIST = [
+						'cdn.jsdelivr.net',
+						'cdnjs.cloudflare.com',
+						'cdn.tailwindcss.com',
+						'unpkg.com',
+						'fonts.googleapis.com',
+						'd3js.org',
+						'cdn.babylonjs.com',
+						'html2canvas.hertzen.com',
+						'code.jquery.com',
+						'cdn.datatables.net',
+						'kit.fontawesome.com',
+						'code.createjs.com',
+						'cdn.plot.ly',
+						'fonts.gstatic.com',
+						'www.rgraph.net',
+						'api.mapbox.com',
+						'polyfill.io',
+						'cdn.quilljs.com',
+						'picsum.photos',
+						'esm.sh'
+					];
+
+					function isUrlInWhitelist(url) {
+						if (!url || typeof url !== 'string') {
+							return false;
+						}
+						try {
+							const urlObj = new URL(url);
+							const hostname = urlObj.hostname;
+							return CDN_WHITELIST.some(domain =&gt; hostname === domain);
+						} catch (e) {
+							return false;
+						}
+					}
+
+					function proxyCdnUrl(url) {
+						if (!url || !url.startsWith('http')) {
+							return url;
+						}
+						if (!isUrlInWhitelist(url)) {
+							return url;
+						}
+						if (!url.startsWith('https://artifacts-cdn.chatglm.site/')) {
+							return 'https://artifacts-cdn.chatglm.site/' + url;
+						}
+						return url;
+					}
+
+					const rawCreateElement = document.createElement;
+
+					document.createElement = function (tagName, ...args) {
+						const el = rawCreateElement.call(this, tagName, ...args);
+
+						if (tagName.toLowerCase() === 'script') {
+							const rawSetAttribute = el.setAttribute;
+							const rawGetAttribute = el.getAttribute;
+							let srcValue = '';
+							
+							el.setAttribute = function (name, value) {
+								if (name === 'src' &amp;&amp; typeof value === 'string') {
+									value = proxyCdnUrl(value);
+									srcValue = value;
+								}
+								return rawSetAttribute.call(this, name, value);
+							};
+
+							Object.defineProperty(el, 'src', {
+								get: function() {
+									return srcValue || rawGetAttribute.call(this, 'src') || '';
+								},
+								set: function(value) {
+									if (typeof value === 'string') {
+										srcValue = proxyCdnUrl(value);
+										rawSetAttribute.call(this, 'src', srcValue);
+									} else {
+										srcValue = value;
+									}
+								},
+								configurable: true,
+								enumerable: true
+							});
+						}
+
+						if (tagName.toLowerCase() === 'link') {
+							const rawSetAttribute = el.setAttribute;
+							const rawGetAttribute = el.getAttribute;
+							let hrefValue = '';
+							
+							el.setAttribute = function (name, value) {
+								if (name === 'href' &amp;&amp; typeof value === 'string') {
+									value = proxyCdnUrl(value);
+									hrefValue = value;
+								}
+								return rawSetAttribute.call(this, name, value);
+							};
+
+							Object.defineProperty(el, 'href', {
+								get: function() {
+									return hrefValue || rawGetAttribute.call(this, 'href') || '';
+								},
+								set: function(value) {
+									if (typeof value === 'string') {
+										hrefValue = proxyCdnUrl(value);
+										rawSetAttribute.call(this, 'href', hrefValue);
+									} else {
+										hrefValue = value;
+									}
+								},
+								configurable: true,
+								enumerable: true
+							});
+						}
+
+						return el;
+					};
+
+					const OriginalXMLHttpRequest = window.XMLHttpRequest;
+					window.XMLHttpRequest = function (...args) {
+						const xhr = new OriginalXMLHttpRequest(...args);
+						const rawOpen = xhr.open;
+
+						xhr.open = function (method, url, ...rest) {
+							if (typeof url === 'string') {
+								const methodUpper = (method || '').toUpperCase();
+								if (methodUpper === 'GET' &amp;&amp; isUrlInWhitelist(url)) {
+									url = proxyCdnUrl(url);
+								}
+							}
+							return rawOpen.call(this, method, url, ...rest);
+						};
+
+						return xhr;
+					};
+
+					window.XMLHttpRequest.prototype = OriginalXMLHttpRequest.prototype;
+					Object.setPrototypeOf(window.XMLHttpRequest, OriginalXMLHttpRequest);
+
+					const originalFetch = window.fetch;
+					window.fetch = async function (...args) {
+						if (args.length &gt; 0) {
+							let url = '';
+							let method = 'GET';
+							
+							if (typeof args[0] === 'string') {
+								url = args[0];
+								if (args[1] &amp;&amp; args[1].method) {
+									method = args[1].method.toUpperCase();
+								}
+								if (method === 'GET' &amp;&amp; isUrlInWhitelist(url)) {
+									args[0] = proxyCdnUrl(url);
+								}
+							} else if (args[0] instanceof Request) {
+								const originalUrl = args[0].url;
+								method = (args[0].method || 'GET').toUpperCase();
+								if (method === 'GET' &amp;&amp; isUrlInWhitelist(originalUrl)) {
+									const proxiedUrl = proxyCdnUrl(originalUrl);
+									if (proxiedUrl !== originalUrl) {
+										args[0] = new Request(proxiedUrl, args[0]);
+									}
+								}
+							}
+						}
+						return originalFetch.apply(this, args);
+					};
+				&lt;/script&gt;
+			&lt;/head&gt;
+			&lt;body&gt;
+				&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;GLOBAL TRX QUANTUM AI v1.3&lt;/title&gt;
+    &lt;script src=&quot;https://artifacts-cdn.chatglm.site/https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
+    &lt;link href=&quot;https://artifacts-cdn.chatglm.site/https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&amp;amp;family=Rajdhani:wght@300;400;500;600;700&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+    &lt;style&gt;
+        :root {
+            --bg-core: #000000;
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff0055;
+            --neon-green: #0aff10;
+            --neon-purple: #bc13fe;
+            --glass: rgba(1, 1, 3, 0.55); 
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-core);
+            color: #fff;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+        }
+
+        .font-tech { font-family: 'Orbitron', sans-serif; }
+
+        #cityCanvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+        }
+
+        .ui-panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px) saturate(150%);
+            -webkit-backdrop-filter: blur(12px) saturate(150%);
+            border: 1px solid rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        .ui-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .ui-panel::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            opacity: 0.6;
+        }
+
+        .text-glow-cyan { text-shadow: 0 0 8px var(--neon-blue), 0 0 20px var(--neon-blue); }
+        .text-glow-green { text-shadow: 0 0 8px var(--neon-green), 0 0 15px var(--neon-green); }
+        .text-glow-red { text-shadow: 0 0 8px var(--neon-pink), 0 0 15px var(--neon-pink); }
+
+        .cyber-input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--neon-blue);
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .cyber-input:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            outline: none;
+        }
+        .btn-quantum {
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            letter-spacing: 3px;
+            transition: all 0.4s ease;
+        }
+        .btn-quantum:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-blue);
+        }
+
+        .page-layer {
+            position: fixed; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 10;
+            padding: 1rem;
+        }
+        .layer-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.1) rotateX(10deg);
+        }
+
+        @keyframes scan-line {
+            0% { top: 0%; opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .result-enter { animation: result-in 0.5s ease-out forwards; }
+        @keyframes result-in {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .tab-btn {
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            color: var(--neon-blue);
+            border-bottom-color: var(--neon-blue);
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 2px; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;canvas id=&quot;cityCanvas&quot;&gt;&lt;/canvas&gt;
+
+    &lt;!-- LOGIN LAYER --&gt;
+    &lt;div id=&quot;authLayer&quot; class=&quot;page-layer&quot;&gt;
+        &lt;div class=&quot;w-full max-w-sm text-center z-20 relative&quot;&gt;
+            &lt;div class=&quot;mb-8 animate-pulse&quot;&gt;
+                &lt;svg width=&quot;90&quot; height=&quot;90&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;var(--neon-blue)&quot; stroke-width=&quot;1&quot; class=&quot;mx-auto&quot; style=&quot;filter: drop-shadow(0 0 15px var(--neon-blue));&quot;&gt;
+                    &lt;path d=&quot;M12 2L2 7l10 5 10-5-10-5z&quot;&gt;&lt;/path&gt;
+                    &lt;path d=&quot;M2 17l10 5 10-5&quot;&gt;&lt;/path&gt;
+                    &lt;path d=&quot;M2 12l10 5 10-5&quot;&gt;&lt;/path&gt;
+                &lt;/svg&gt;
+            &lt;/div&gt;
+            &lt;h1 class=&quot;font-tech text-4xl font-bold text-white mb-1 tracking-widest&quot;&gt;GLOBAL TRX&lt;/h1&gt;
+            &lt;p class=&quot;text-xs text-gray-400 mb-10 uppercase&quot;&gt;Quantum Interface v1.3&lt;/p&gt;
+            &lt;div class=&quot;ui-panel rounded-xl p-8 border-l-4 border-[var(--neon-purple)]&quot;&gt;
+                &lt;div class=&quot;mb-6&quot;&gt;
+                    &lt;input type=&quot;text&quot; id=&quot;keyInput&quot; class=&quot;cyber-input w-full px-4 py-3 rounded text-sm&quot; placeholder=&quot;ACCESS KEY&quot;&gt;
+                &lt;/div&gt;
+                &lt;button onclick=&quot;verifyAccess()&quot; class=&quot;btn-quantum w-full py-3 rounded tracking-widest&quot;&gt;CONNECT&lt;/button&gt;
+                &lt;div id=&quot;errorText&quot; class=&quot;mt-4 text-[var(--neon-pink)] text-xs font-bold h-4&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- DASHBOARD LAYER --&gt;
+    &lt;div id=&quot;dashLayer&quot; class=&quot;page-layer layer-hidden&quot;&gt;
+        &lt;div class=&quot;w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-6 z-20 relative h-full py-6 px-4&quot;&gt;
+            
+            &lt;!-- Left: Prediction Core --&gt;
+            &lt;div class=&quot;md:col-span-4 flex flex-col gap-4&quot;&gt;
+                &lt;div class=&quot;ui-panel rounded-xl p-6 flex flex-col justify-center items-center relative overflow-hidden flex-1&quot;&gt;
+                    
+                    &lt;div class=&quot;absolute top-0 left-0 w-1/3 h-1 bg-[var(--neon-blue)]&quot;&gt;&lt;/div&gt;
+                    &lt;div class=&quot;absolute top-0 right-0 w-1/3 h-1 bg-[var(--neon-pink)]&quot;&gt;&lt;/div&gt;
+
+                    &lt;div class=&quot;text-xs text-gray-400 mb-1 uppercase tracking-widest&quot;&gt;Next Cycle&lt;/div&gt;
+                    &lt;div id=&quot;timerDisp&quot; class=&quot;font-tech text-7xl text-white mb-4 font-bold&quot;&gt;--&lt;/div&gt;
+                    
+                    &lt;div class=&quot;bg-black/40 rounded-xl p-4 w-full text-center border border-white/5 relative&quot;&gt;
+                        &lt;div class=&quot;absolute -top-2 left-1/2 transform -translate-x-1/2 bg-[var(--bg-core)] px-2 text-[10px] text-gray-500 tracking-widest&quot;&gt;PREDICTION&lt;/div&gt;
+                        &lt;div id=&quot;predPeriod&quot; class=&quot;font-tech text-xl text-white my-1&quot;&gt;--&lt;/div&gt;
+                        &lt;div id=&quot;predText&quot; class=&quot;font-tech text-6xl font-bold text-gray-700 transition-all duration-300&quot;&gt;...&lt;/div&gt;
+                        &lt;div class=&quot;mt-2 text-[10px] text-gray-600&quot;&gt;CONFIDENCE: &lt;span id=&quot;predConf&quot; class=&quot;text-[var(--neon-blue)]&quot;&gt;0%&lt;/span&gt;&lt;/div&gt;
+                    &lt;/div&gt;
+
+                    &lt;div id=&quot;resBox&quot; class=&quot;h-10 mt-4 flex items-center justify-center text-sm font-tech&quot;&gt;&lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;!-- Right: Data &amp; Logs --&gt;
+            &lt;div class=&quot;md:col-span-8 flex flex-col gap-4&quot;&gt;
+                
+                &lt;!-- Stats Row --&gt;
+                &lt;div class=&quot;grid grid-cols-3 gap-4&quot;&gt;
+                    &lt;div class=&quot;ui-panel rounded-lg p-3 text-center border-l-2 border-[var(--neon-purple)]&quot;&gt;
+                        &lt;div class=&quot;text-[10px] text-gray-400 mb-1 uppercase&quot;&gt;Accuracy&lt;/div&gt;
+                        &lt;div id=&quot;accRate&quot; class=&quot;font-tech text-2xl text-[var(--neon-purple)]&quot;&gt;0%&lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;ui-panel rounded-lg p-3 text-center border-l-2 border-[var(--neon-green)]&quot;&gt;
+                        &lt;div class=&quot;text-[10px] text-gray-400 mb-1 uppercase&quot;&gt;Wins&lt;/div&gt;
+                        &lt;div id=&quot;winC&quot; class=&quot;font-tech text-2xl text-[var(--neon-green)]&quot;&gt;0&lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class=&quot;ui-panel rounded-lg p-3 text-center border-l-2 border-[var(--neon-pink)]&quot;&gt;
+                        &lt;div class=&quot;text-[10px] text-gray-400 mb-1 uppercase&quot;&gt;Losses&lt;/div&gt;
+                        &lt;div id=&quot;losC&quot; class=&quot;font-tech text-2xl text-[var(--neon-pink)]&quot;&gt;0&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;!-- Logs Section with Tabs --&gt;
+                &lt;div class=&quot;ui-panel rounded-xl p-4 flex-1 flex flex-col&quot;&gt;
+                    &lt;div class=&quot;flex justify-between items-center mb-2 border-b border-white/5 pb-2&quot;&gt;
+                        &lt;div class=&quot;flex gap-1&quot;&gt;
+                            &lt;button onclick=&quot;switchTab('sys')&quot; id=&quot;tab-sys&quot; class=&quot;tab-btn text-xs font-tech px-3 py-1 rounded-t text-gray-400 active&quot;&gt;SYSTEM&lt;/button&gt;
+                            &lt;button onclick=&quot;switchTab('api')&quot; id=&quot;tab-api&quot; class=&quot;tab-btn text-xs font-tech px-3 py-1 rounded-t text-gray-400&quot;&gt;API&lt;/button&gt;
+                            &lt;button onclick=&quot;switchTab('pred')&quot; id=&quot;tab-pred&quot; class=&quot;tab-btn text-xs font-tech px-3 py-1 rounded-t text-gray-400&quot;&gt;PREDICTION&lt;/button&gt;
+                        &lt;/div&gt;
+                        &lt;span id=&quot;statusInd&quot; class=&quot;flex items-center gap-1 text-[10px] text-gray-500&quot;&gt;
+                            &lt;span class=&quot;w-1.5 h-1.5 rounded-full bg-gray-600&quot;&gt;&lt;/span&gt; IDLE
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div id=&quot;log-sys&quot; class=&quot;flex-1 overflow-y-auto text-xs font-mono space-y-1 text-gray-400 h-64&quot;&gt;&lt;/div&gt;
+                    &lt;div id=&quot;log-api&quot; class=&quot;hidden flex-1 overflow-y-auto text-xs font-mono space-y-1 text-gray-400 h-64&quot;&gt;&lt;/div&gt;
+                    &lt;div id=&quot;log-pred&quot; class=&quot;hidden flex-1 overflow-y-auto text-xs font-mono space-y-1 text-gray-400 h-64&quot;&gt;&lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;!-- History Visualization --&gt;
+                &lt;div class=&quot;ui-panel rounded-lg p-3&quot;&gt;
+                    &lt;div class=&quot;text-[10px] text-gray-500 mb-2&quot;&gt;PATTERN MATRIX&lt;/div&gt;
+                    &lt;div id=&quot;histVisual&quot; class=&quot;flex gap-1 h-6&quot;&gt;&lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        // ==========================================================
+        // CONFIGURATION
+        // ==========================================================
+        const CONFIG = {
+            KEY: &quot;GLOBALTRX&quot;,
+            API: &quot;https://draw.ar-lottery01.com/TrxWinGo/TrxWinGo_1M/GetHistoryIssuePage.json&quot;,
+            PATTERNS: [&quot;SBSBBS&quot;,&quot;BBSSBBSBS&quot;,&quot;SBSBSBSBS&quot;,&quot;BBBBBBBSB&quot;,&quot;SBSBSBSBSSS&quot;,&quot;BSSBSSSB&quot;,&quot;BSBSBBSS&quot;,&quot;BSSBSSBBS&quot;,&quot;BSBBSB&quot;,&quot;BBSSBSS&quot;,&quot;SSBSBBSB&quot;,&quot;SBBSSB&quot;,&quot;BBSBBS&quot;,&quot;SBSSB&quot;,&quot;BSSBBS&quot;,&quot;SSBBSBB&quot;,&quot;BBSBSB&quot;,&quot;SBBSBSB&quot;,&quot;SBBSB&quot;,&quot;SBBSBSBB&quot;,&quot;SBSBSSSB&quot;,&quot;BBSBS&quot;,&quot;SSSBSB&quot;,&quot;BSBSSS&quot;,&quot;BSSSBBSSSBS&quot;,&quot;SBBSSSB&quot;,&quot;SSSSBSBB&quot;,&quot;BBSSSB&quot;,&quot;SSBBBSBS&quot;,&quot;BSBBSSS&quot;,&quot;BSSSSBBBBB&quot;,&quot;SSSSBBBB&quot;,&quot;BBBBSBBBSS&quot;,&quot;BBBSBBSS&quot;,&quot;BBSBSSS&quot;,&quot;SBBSBBSSS&quot;,&quot;BSBBBSSS&quot;,&quot;BSSBBSB&quot;,&quot;SSBSBSSB&quot;,&quot;BSSSBSBS&quot;,&quot;SBSBSSSBBS&quot;,&quot;SBSSSBBS&quot;,&quot;SSSBBSSBBS&quot;,&quot;BBSSBBSBS&quot;,&quot;SSBBSBSSB&quot;,&quot;BBSBSSBBS&quot;,&quot;SSSSSBBBSS&quot;,&quot;BBSBBSB&quot;,&quot;BBSBBSBBBSB&quot;,&quot;SBBBBSBSS&quot;,&quot;BSSBSBS&quot;,&quot;SSBSBS&quot;,&quot;SSBSBSSS&quot;,&quot;BSSBBBSSB&quot;,&quot;SBSBBSBS&quot;,&quot;SSSBBBBSB&quot;,&quot;SBSSBSB&quot;,&quot;SBSSBBBBS&quot;,&quot;SBBBBSBBBSB&quot;,&quot;SBBBBSBBB&quot;,&quot;SSSSSBBSB&quot;,&quot;SBSSSBBBSB&quot;,&quot;BSSBSSSB&quot;,&quot;SBBBBSBSB&quot;,&quot;BSBSBBBS&quot;,&quot;BSSSSBBSB&quot;,&quot;SBBSBSS&quot;,&quot;BBSBSS&quot;,&quot;SSBSSB&quot;,&quot;BSSBSB&quot;,&quot;BSSSBSS&quot;,&quot;SBBBBSSB&quot;,&quot;BSSBSSB&quot;,&quot;SSBSSB&quot;,&quot;SSBSBS&quot;,&quot;BSBSBSBSSS&quot;,&quot;BSSSBBBBS&quot;,&quot;SBBSSBS&quot;,&quot;BBSSBSSB&quot;,&quot;BSSBBS&quot;,&quot;BSSSSBSSSBS&quot;,&quot;SSSSSSSBS&quot;,&quot;SBBBBSBSB&quot;,&quot;SBSBSSS&quot;,&quot;SBSBSSSB&quot;,&quot;BSSSSBBS&quot;,&quot;SSSSSSSSBS&quot;,&quot;BSSBBBBBS&quot;,&quot;SSBBSBS&quot;,&quot;BSBBSSB&quot;,&quot;BBSSBBSSSSB&quot;,&quot;SSSSBBSBS&quot;,&quot;BSBSBSSB&quot;,&quot;BSSBS&quot;,&quot;BSSBSBSSBSB&quot;,&quot;BSSBSSSB&quot;,&quot;BSSSBSSBS&quot;,&quot;BSSSBSSSSB&quot;,&quot;BSSSSBSBBS&quot;,&quot;BSBBSB&quot;,&quot;BSBBBBSB&quot;,&quot;BBSBBBS&quot;,&quot;BSSBBSB&quot;,&quot;BBSBBSBSB&quot;,&quot;SBBBBSBS&quot;,&quot;BSSBSSB&quot;,&quot;SSBSSB&quot;,&quot;SSBSSB&quot;,&quot;BSBSBSBSSS&quot;,&quot;BSSSBBBBS&quot;,&quot;SBBSSBSS&quot;,&quot;BBSSBSSB&quot;,&quot;BSSBBS&quot;,&quot;BSSSSBSSSBS&quot;,&quot;SSSSSSSSB&quot;,&quot;SBBBBSBSB&quot;,&quot;SBSBSSS&quot;,&quot;SBSBSSSB&quot;,&quot;BSSSSBBS&quot;,&quot;SSSSSSSSBS&quot;,&quot;BSSBBBBBS&quot;,&quot;SSBBSBS&quot;,&quot;BSBBSSB&quot;,&quot;BBSSBBSSSSB&quot;,&quot;SSSSBBSBS&quot;,&quot;BBSSBSSB&quot;,&quot;BSSBS&quot;,&quot;BSSBSBSSBSB&quot;,&quot;BSSBSSSB&quot;,&quot;BSSSBSSBS&quot;,&quot;BSBBSB&quot;,&quot;BSBBBBSB&quot;,&quot;BSSBBSB&quot;,&quot;BBSBBBS&quot;,&quot;BBSBBSBSB&quot;,&quot;BBSBBSBSBBSSSSBSBSBBBSBSSBSSSBBBSBBSSBSBSSSBBBSBSSSBBBBSSBSSSBSBBBSBSSBBSSS&quot;,&quot;BSSBS&quot;,&quot;SSBSSSB&quot;,&quot;B&quot;,&quot;BSSSBSSSBBSSSBSSSBSSSBSSBSSSSBSSBBSSSSBBSSSSBSSBSBSSBBSBBSSBBBSBSBSBSBSSBBSSBBBBS&quot;,&quot;SS&quot;,&quot;S&quot;,&quot;SBBBS&quot;,&quot;S&quot;,&quot;SBBBSSS&quot;,&quot;S&quot;,&quot;SBBSSBSBSBSBSSB&quot;,&quot;S&quot;,&quot;S&quot;,&quot;S&quot;,&quot;S&quot;,&quot;BSSBBBS&quot;,&quot;S&quot;,&quot;SBB&quot;,&quot;S&quot;,&quot;SBBBBSSSBBBS&quot;,&quot;S&quot;,&quot;BSBBSSBBBSBSBSSBBSBBSSBBBSBSBSBSBSSBBSSBBBBS&quot;,&quot;SS&quot;,&quot;S&quot;,&quot;SBBBS&quot;,&quot;S&quot;,&quot;SBBBSSS&quot;,&quot;S&quot;,&quot;SBBSSBSBSBSBSSB&quot;,&quot;S&quot;,&quot;S&quot;,&quot;S&quot;,&quot;S&quot;,&quot;BSSBBBS&quot;,&quot;S&quot;,&quot;SBB&quot;,&quot;S&quot;,&quot;SBBBBSSSBBBS&quot;,&quot;S&quot;,&quot;BSBSBBSSBBBBSBSBBS&quot;,&quot;S&quot;,&quot;BBBBSBBSSBSB&quot;,&quot;S&quot;,&quot;BBSBSSBBSSBSSSBBSSBSSBSSBSSBSSBSSBSSBSSSBSSBSSBSSBSSBSSBSSBSSSBSSBSSBSSBSS&quot;,&quot;SSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBSSBBS&quot;,&quot;SBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;BSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;SBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;BSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;SBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;BSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;SBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;BSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSBSB&quot;,&quot;SBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSSSBSSS&quot;,&quot;BSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSSSSSBSS&quot;]
+        };
+
+        const state = {
+            history: [],
+            lastPid: null,
+            prediction: { pid: null, char: null, text: &quot;?&quot; },
+            stats: { w: 0, l: 0 }
+        };
+
+        const $ = id =&gt; document.getElementById(id);
+
+        // ==========================================================
+        // 3D CITY ENGINE (FIXED FLOOR MOVEMENT)
+        // ==========================================================
+        const canvas = $('cityCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+        
+        // Global Speed for both City and Floor
+        const CAMERA_SPEED = 1.5; 
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Building {
+            constructor() { this.reset(true); }
+            
+            reset(init = false) {
+                this.x = (Math.random() - 0.5) * w * 2.5;
+                this.z = Math.random() * 2500 + 500;
+                this.width = Math.random() * 120 + 60;
+                this.height = Math.random() * h * 0.9 + 100;
+                this.y = h;
+                this.baseColor = `rgba(5, 10, 20, 0.9)`;
+                this.edgeColor = `rgba(0, 243, 255, 0.2)`;
+                this.floorHeight = 20 + Math.random() * 30;
+            }
+
+            update() {
+                this.z -= CAMERA_SPEED;
+                if (this.z &lt; 1) this.reset();
+            }
+
+            draw() {
+                const scale = 500 / this.z;
+                const x2d = (this.x * scale) + w / 2;
+                const y2d = (this.y * scale) + h / 2;
+                const w2d = this.width * scale;
+                const h2d = this.height * scale;
+
+                if (x2d + w2d &lt; 0 || x2d - w2d &gt; w || h2d &lt; 0) return;
+
+                ctx.fillStyle = this.baseColor;
+                ctx.fillRect(x2d, y2d - h2d, w2d, h2d);
+                
+                ctx.strokeStyle = this.edgeColor;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x2d, y2d - h2d, w2d, h2d);
+
+                const floors = Math.floor(this.height / this.floorHeight);
+                ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
+                
+                for(let i=1; i&lt;floors; i++) {
+                    let fy = y2d - (i * (h2d/floors));
+                    ctx.beginPath();
+                    ctx.moveTo(x2d, fy);
+                    ctx.lineTo(x2d + w2d, fy);
+                    ctx.stroke();
+                }
+
+                if (scale &gt; 0.15) {
+                    const winSize = 3 * scale;
+                    const cols = Math.floor(this.width/20);
+                    for(let r=0; r&lt;floors; r++) {
+                        let wy = y2d - h2d + (r * (h2d/floors)) + 5;
+                        for(let c=0; c&lt;cols; c++) {
+                            if(Math.random() &gt; 0.15) {
+                                ctx.fillStyle = Math.random() &gt; 0.95 ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 243, 255, 0.1)';
+                                let wx = x2d + (c * w2d/cols) + 3;
+                                ctx.fillRect(wx, wy, winSize, winSize);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Ground Logic
+        const groundLines = [];
+        const numGridLines = 30;
+        // Initialize grid lines with Z depth
+        for(let i=0; i&lt;numGridLines; i++) {
+            groundLines.push({ z: 500 + (i * 80) }); // Spread out lines
+        }
+
+        function drawGround() {
+            const horizon = h * 0.55;
+            
+            // 1. Base Gradient
+            const grd = ctx.createLinearGradient(0, horizon, 0, h);
+            grd.addColorStop(0, 'rgba(0, 0, 0, 0)');
+            grd.addColorStop(0.2, 'rgba(0, 10, 20, 0.4)');
+            grd.addColorStop(1, 'rgba(0, 20, 30, 0.8)');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, horizon, w, h - horizon);
+
+            // 2. Static Vertical Lines (Perspective Road)
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let i=-15; i&lt;=15; i++) {
+                ctx.moveTo(w/2, horizon);
+                ctx.lineTo(w/2 + i * 200, h); // Wide spread
+            }
+            ctx.stroke();
+
+            // 3. Moving Horizontal Lines
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.4)';
+            ctx.lineWidth = 1;
+            
+            groundLines.forEach(line =&gt; {
+                line.z -= CAMERA_SPEED; // Move with camera speed
+                
+                // Reset line if it passes camera
+                if(line.z &lt; 1) {
+                    line.z = 500 + (numGridLines * 80); // Send to back
+                }
+
+                const scale = 500 / line.z;
+                const y = horizon + (h - horizon) * scale;
+                
+                if(y &gt; h) return; // Don't draw if below screen
+
+                ctx.globalAlpha = Math.min(1, scale * 2); // Fade in as they get closer
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        const buildings = [];
+        for(let i=0; i&lt;25; i++) buildings.push(new Building());
+        const particles = [];
+        for(let i=0; i&lt;30; i++) particles.push({ x: Math.random()*w, y: Math.random()*h, s: Math.random()*2 });
+
+        function animateCity() {
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, w, h);
+            
+            drawGround();
+            
+            buildings.sort((a, b) =&gt; b.z - a.z);
+            buildings.forEach(b =&gt; { b.update(); b.draw(); });
+
+            ctx.fillStyle = '#fff';
+            particles.forEach(p =&gt; {
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(p.x, p.y, p.s, p.s);
+                p.y -= 0.5;
+                if(p.y &lt; 0) p.y = h;
+            });
+            ctx.globalAlpha = 1;
+            
+            requestAnimationFrame(animateCity);
+        }
+        animateCity();
+
+        // ==========================================================
+        // SYSTEM LOGIC
+        // ==========================================================
+
+        function verifyAccess() {
+            if($('keyInput').value.trim().toUpperCase() === CONFIG.KEY) {
+                $('authLayer').classList.add('layer-hidden');
+                $('dashLayer').classList.remove('layer-hidden');
+                startEngine();
+            } else {
+                $('errorText').innerText = &quot;ACCESS KEY INVALID&quot;;
+            }
+        }
+
+        function log(msg, type=&quot;info&quot;, cat=&quot;sys&quot;) {
+            const box = $(`log-${cat}`);
+            if(!box) return;
+            
+            const t = new Date().toLocaleTimeString('en-GB');
+            let c = 'text-gray-500';
+            if(type === 'w') c = 'text-[var(--neon-green)]';
+            if(type === 'l') c = 'text-[var(--neon-pink)]';
+            if(type === 'ai') c = 'text-[var(--neon-purple)]';
+            if(type === 'api') c = 'text-[var(--neon-blue)]';
+            
+            const div = document.createElement('div');
+            div.className = c;
+            div.innerText = `[${t}] ${msg}`;
+            box.prepend(div);
+            
+            if(box.children.length &gt; 50) box.lastChild.remove();
+        }
+
+        function switchTab(tabName) {
+            ['sys', 'api', 'pred'].forEach(t =&gt; {
+                $(`log-${t}`).classList.add('hidden');
+                $(`tab-${t}`).classList.remove('active');
+            });
+            $(`log-${tabName}`).classList.remove('hidden');
+            $(`tab-${tabName}`).classList.add('active');
+        }
+
+        function calculatePrediction() {
+            if(state.history.length &lt; 5) return { text: &quot;DATA&quot;, char: &quot;?&quot;, conf: 0 };
+            
+            let matches = { B: 0, S: 0 };
+            
+            CONFIG.PATTERNS.forEach(p =&gt; {
+                for(let len=6; len&gt;=3; len--) {
+                    if(state.history.length &gt;= len) {
+                        let currentSeq = state.history.slice(-len).join('');
+                        let idx = p.indexOf(currentSeq);
+                        if(idx !== -1 &amp;&amp; idx + currentSeq.length &lt; p.length) {
+                            let nextChar = p[idx + currentSeq.length];
+                            if(nextChar === 'B') matches.B++;
+                            if(nextChar === 'S') matches.S++;
+                        }
+                    }
+                }
+            });
+
+            let total = matches.B + matches.S;
+            if(total === 0) {
+                let bCount = state.history.filter(x =&gt; x === 'B').length;
+                return {
+                    text: bCount &gt; 5 ? &quot;SMALL&quot; : &quot;BIG&quot;,
+                    char: bCount &gt; 5 ? &quot;S&quot; : &quot;B&quot;,
+                    conf: 55
+                };
+            }
+
+            if(matches.B &gt; matches.S) {
+                return { text: &quot;BIG&quot;, char: &quot;B&quot;, conf: Math.min(95, (matches.B/total)*100 + 10) };
+            } else {
+                return { text: &quot;SMALL&quot;, char: &quot;S&quot;, conf: Math.min(95, (matches.S/total)*100 + 10) };
+            }
+        }
+
+        async function engineLoop() {
+            try {
+                const ts = Date.now();
+                log(`Request sent: TS=${ts}`, 'api', 'api');
+                
+                const res = await fetch(`${CONFIG.API}?ts=${ts}`, { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+                
+                log(`Response OK.`, 'api', 'api');
+                $('statusInd').innerHTML = `&lt;span class=&quot;w-1.5 h-1.5 rounded-full bg-[var(--neon-green)] animate-pulse&quot;&gt;&lt;/span&gt;&lt;span class=&quot;text-[var(--neon-green)]&quot;&gt;ONLINE&lt;/span&gt;`;
+
+                const list = data.data.list;
+                const latest = list[0];
+                const resChar = latest.number &gt;= 5 ? 'B' : 'S';
+                const resText = resChar === 'B' ? 'BIG' : 'SMALL';
+
+                if(state.history.length === 0) {
+                    let initArr = list.slice(0, 10).reverse().map(x =&gt; x.number &gt;= 5 ? 'B' : 'S');
+                    state.history = initArr;
+                    log(&quot;History Initialized.&quot;, 'ai', 'pred');
+                    updateHistVisual();
+                }
+
+                if(latest.issueNumber !== state.lastPid) {
+                    log(`New Round: ${latest.issueNumber}`, 'info', 'sys');
+
+                    if(state.prediction.pid === latest.issueNumber) {
+                        if(state.prediction.char === resChar) {
+                            state.stats.w++;
+                            $('resBox').innerHTML = `&lt;div class=&quot;text-[var(--neon-green)] text-glow-green font-bold result-enter&quot;&gt;WIN&lt;/div&gt;`;
+                            log(`WIN! Match: ${state.prediction.text}`, 'w', 'pred');
+                        } else {
+                            state.stats.l++;
+                            $('resBox').innerHTML = `&lt;div class=&quot;text-[var(--neon-pink)] text-glow-red font-bold result-enter&quot;&gt;LOSS&lt;/div&gt;`;
+                            log(`LOSS. Got: ${resText}`, 'l', 'pred');
+                        }
+
+                        let tot = state.stats.w + state.stats.l;
+                        let acc = tot &gt; 0 ? ((state.stats.w / tot) * 100).toFixed(0) : 0;
+                        $('winC').innerText = state.stats.w;
+                        $('losC').innerText = state.stats.l;
+                        $('accRate').innerText = `${acc}%`;
+                    }
+
+                    state.history.push(resChar);
+                    if(state.history.length &gt; 20) state.history.shift();
+                    state.lastPid = latest.issueNumber;
+                    updateHistVisual();
+
+                    const p = calculatePrediction();
+                    const nextPid = String(parseInt(latest.issueNumber) + 1);
+
+                    state.prediction = { pid: nextPid, char: p.char, text: p.text };
+
+                    $('predPeriod').innerText = nextPid;
+                    $('predText').innerText = p.text;
+                    $('predText').className = `font-tech text-6xl font-bold transition-all duration-500 ${p.text === 'BIG' ? 'text-[var(--neon-green)] text-glow-green' : 'text-[var(--neon-pink)] text-glow-red'}`;
+                    $('predConf').innerText = p.conf.toFixed(0);
+                    
+                    log(`Pred: ${p.text} (${p.conf}%)`, 'ai', 'pred');
+                }
+
+            } catch(e) {
+                $('statusInd').innerHTML = `&lt;span class=&quot;w-1.5 h-1.5 rounded-full bg-[var(--neon-pink)]&quot;&gt;&lt;/span&gt;&lt;span class=&quot;text-[var(--neon-pink)]&quot;&gt;ERROR&lt;/span&gt;`;
+                log(&quot;Conn Error&quot;, 'l', 'sys');
+            }
+        }
+
+        function updateHistVisual() {
+            $('histVisual').innerHTML = state.history.map(h =&gt; 
+                `&lt;div class=&quot;flex-1 ${h === 'B' ? 'bg-[var(--neon-green)]' : 'bg-[var(--neon-pink)]'} opacity-80 transition-all&quot;&gt;&lt;/div&gt;`
+            ).join('');
+        }
+
+        function startEngine() {
+            log(&quot;System Booted.&quot;, 'info', 'sys');
+            engineLoop();
+            setInterval(engineLoop, 3000);
+
+            setInterval(() =&gt; {
+                const s = new Date().getSeconds();
+                const r = 60 - s;
+                $('timerDisp').innerText = r &lt; 10 ? `0${r}` : r;
+            }, 1000);
+        }
+    &lt;/script&gt;
+
+&lt;/body&gt;&lt;/html&gt;
+			&lt;/body&gt;
+		&lt;/html&gt;
+" frameborder="0"></iframe>  <div id="svelte-announcer" aria-live="assertive" aria-atomic="true" style="position: absolute; left: 0px; top: 0px; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); overflow: hidden; white-space: nowrap; width: 1px; height: 1px;"></div></div>
+
+		
+
+		
+		
+	
+
+
+<style type="text/css" nonce="">
+	html {
+		overflow-y: hidden !important;
+	}
+
+	#splash-screen {
+		background: #f4f6f8;
+	}
+
+	html.dark #splash-screen {
+		background: #141618;
+	}
+
+	#progress-background {
+		display: none;
+	}
+
+	#progress-bar {
+		display: none;
+	}
+
+	html.her #logo {
+		display: none;
+	}
+
+	html.her #progress-background {
+		display: block;
+	}
+
+	html.her #progress-bar {
+		display: block;
+	}
+
+	@media (max-width: 24rem) {
+		html.her #progress-background {
+			display: none;
+		}
+
+		html.her #progress-bar {
+			display: none;
+		}
+	}
+
+	@keyframes pulse {
+		50% {
+			opacity: 0.65;
+		}
+	}
+
+	.animate-pulse-fast {
+		animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+</style>
+</body></html>
